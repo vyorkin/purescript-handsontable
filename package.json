@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "scripts": {
+    "postinstall": "bower cache clean && bower install && cd example && npm install",
+    "build": "pulp build",
+    "example": "bower link && cd example && bower link purescript-handsontable && npm run -s build",
+    "repl": "pulp repl",
+    "docs": "pulp docs",
+    "bump": "pulp version",
+    "release": "pulp publish",
+    "clean": "rm -rf output .pulp-cache",
+    "reset": "rm -rf node_modules bower_components"
+  },
+  "dependencies": {
+    "handsontable": "^6.2.2"
+  }
+}

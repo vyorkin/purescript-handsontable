@@ -1,0 +1,7 @@
+{
+  "name": "purescript-handsontable-example",
+  "private": true,
+  "dependencies": {
+    "purescript-handsontable": "*"
+  }
+}

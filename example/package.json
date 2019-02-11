@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "pulp browserify --optimise --to index.js"
+  },
+  "dependencies": {
+    "normalize.css": "^8.0.1"
+  }
+}

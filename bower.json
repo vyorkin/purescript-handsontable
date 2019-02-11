@@ -1,0 +1,41 @@
+{
+  "name": "purescript-handsontable",
+  "version": "0.1.0",
+  "description": "Handsontable bindings",
+  "keywords": [
+    "purescript",
+    "handsontable",
+    "table",
+    "grid",
+    "spreadsheet",
+    "bindings"
+  ],
+  "license": "MIT",
+  "authors": [
+    "Moritz Drexl",
+    "Vasiliy Yorkin <vasiliy.yorkin@gmail.com>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vyorkin/purescript-handsontable.git"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output",
+    "bower.json",
+    "package.json"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^4.1.0",
+    "purescript-options": "^4.0.0",
+    "purescript-unicode-prelude": "^0.2.4",
+    "purescript-foreign-generic": "^8.0.0",
+    "purescript-foreign": "^5.0.0",
+    "purescript-web-html": "^1.2.0"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^4.0.0"
+  }
+}
