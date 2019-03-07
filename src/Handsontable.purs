@@ -1,9 +1,6 @@
 module Handsontable
-  ( Coords
-  , Handsontable
-  , HandsontableOptions
+  ( HandsontableOptions
   , MetaObject
-  , Dimension
   , handsontable
   , handsontableNode
   , clear
@@ -31,34 +28,33 @@ module Handsontable
   , colToProp
   , getCell
   , defaultOptions
+  , module Handsontable.Types
   ) where
 
 import Prelude
 
-import Handsontable.Utils (runDecode)
 import Data.Either (Either)
+import Data.Maybe (Maybe(..))
+import Data.Nullable (Nullable, toNullable)
 import Data.Options (Options, options, (:=))
 import Effect (Effect)
-import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, EffectFn4, EffectFn5, runEffectFn1, runEffectFn2, runEffectFn3, runEffectFn4, runEffectFn5)
+import Effect.Uncurried (EffectFn1, EffectFn2, EffectFn3, EffectFn4, EffectFn5, EffectFn6, runEffectFn1, runEffectFn2, runEffectFn3, runEffectFn4, runEffectFn5, runEffectFn6)
 import Foreign (Foreign, MultipleErrors, unsafeToForeign)
 import Foreign.Class (class Decode)
 import Foreign.NullOrUndefined (undefined)
+import Handsontable.AlterAction (AlterAction)
+import Handsontable.AlterAction as AlterAction
 import Handsontable.Options (TableOptions, allowInsertColumn, allowInsertRow, allowRemoveColumn, allowRemoveRow, minSpareCols, minSpareRows)
 import Handsontable.Options.Common (SharedOptions)
+import Handsontable.SourceIndicator (SourceIndicator)
+import Handsontable.Types as CountSource
+import Handsontable.Types (Handsontable, Coords, Dimension(..), CountSource)
+import Handsontable.Utils (runDecode)
 import Prelude.Unicode ((∘))
 import Web.HTML (HTMLElement, HTMLTableCellElement)
 
-type Coords =
-  { row ∷ Int
-  , col ∷ Int
-  }
-
-foreign import data Handsontable ∷ Type
-
 type HandsontableOptions = Options TableOptions
 type MetaObject = Options SharedOptions
-
-data Dimension = Row | Col
 
 foreign import _handsontable ∷ EffectFn2 String Foreign Handsontable
 
@@ -104,7 +100,7 @@ loadData cells self = runEffectFn2 _loadData cells self
 foreign import _getSchema ∷ ∀ a. EffectFn1 Handsontable a
 
 -- | Returns schema provided by constructor settings.
-getSchema ∷ Handsontable → Effect Unit
+getSchema ∷ ∀ a. Handsontable → Effect a
 getSchema self = runEffectFn1 _getSchema self
 
 foreign import _getRowHeader ∷ EffectFn2 Foreign Handsontable Foreign
@@ -125,8 +121,7 @@ getColHeaders self = runEffectFn2 _getColHeader undefined self >>= runDecode >>>
 
 -- | Get header for the given column index.
 getColHeader ∷ Int → Handsontable → Effect (Either MultipleErrors String)
-getColHeader col self =
-  runEffectFn2 _getColHeader (unsafeToForeign col) self >>= runDecode >>> pure
+getColHeader col self = runEffectFn2 _getColHeader (unsafeToForeign col) self >>= runDecode >>> pure
 
 foreign import _setCellMeta ∷ EffectFn5 Int Int String String Handsontable Unit
 
@@ -138,8 +133,7 @@ foreign import _setCellMetaObject ∷ EffectFn4 Int Int Foreign Handsontable Uni
 
 -- | Set cell metadata.
 setCellMetaObject ∷ Coords → MetaObject → Handsontable → Effect Unit
-setCellMetaObject { row, col } meta self =
-  runEffectFn4 _setCellMetaObject row col (options meta) self
+setCellMetaObject { row, col } meta self = runEffectFn4 _setCellMetaObject row col (options meta) self
 
 foreign import _setDataAtCell ∷ EffectFn5 Int Int Foreign Foreign Handsontable Unit
 
@@ -200,7 +194,7 @@ getSourceDataArraySlice from to self =
 -- | even when source data was provided in another format.
 getSourceDataArray
   ∷ ∀ a
-  . Decode a
+ . Decode a
   ⇒ Handsontable
   → Effect (Either MultipleErrors (Array (Array a)))
 getSourceDataArray self = runEffectFn5 _getSourceDataArray u u u u self >>= runDecode >>> pure
@@ -229,9 +223,9 @@ getSourceDataAt
   → Int
   → Handsontable
   → Effect (Either MultipleErrors (Array a))
-getSourceDataAt d idx self = runEffectFn2 impl idx self >>= pure ∘ runDecode
+getSourceDataAt dim idx self = runEffectFn2 impl idx self >>= pure ∘ runDecode
   where
-    impl = case d of
+    impl = case dim of
       Row → _getSourceDataAtRow
       Col → _getSourceDataAtCol
 
@@ -257,6 +251,94 @@ foreign import _getCell ∷ EffectFn3 Int Int Handsontable HTMLTableCellElement
 -- | given row and column arguments, if it is rendered on screen.
 getCell ∷ Coords → Handsontable → Effect HTMLTableCellElement
 getCell { row, col } self = runEffectFn3 _getCell row col self
+
+foreign import _alter
+  ∷ EffectFn6
+    String
+    Foreign
+    (Nullable Int)
+    (Nullable String)
+    Boolean
+    Handsontable Unit
+
+-- | Allows altering the table structure by
+-- | either inserting/removing rows or columns.
+alter
+  ∷ AlterAction
+  → Foreign
+  → Maybe Int
+  → Maybe SourceIndicator
+  → Boolean
+  → Handsontable
+  → Effect Unit
+alter action index amount source keepEmpty self =
+  runEffectFn6 _alter
+    (show action)
+    index
+    (toNullable amount)
+    (toNullable $ show <$> source)
+    keepEmpty
+    self
+
+alter_ ∷ AlterAction → Int → Int → Handsontable → Effect Unit
+alter_ action index amount =
+  alter action (unsafeToForeign index) (Just amount) Nothing false
+
+-- | Inserts at the given index the given amount of new rows.
+insertRows ∷ Int → Int → Handsontable → Effect Unit
+insertRows = alter_ AlterAction.InsertRow
+
+-- | Inserts at the given index the given amount of new columns.
+insertCols ∷ Int → Int → Handsontable → Effect Unit
+insertCols = alter_ AlterAction.InsertCol
+
+-- | Removes at the given index the given amount of rows.
+removeRows ∷ Int → Int → Handsontable → Effect Unit
+removeRows = alter_ AlterAction.RemoveRow
+
+-- | Removes at the given index the given amount of cols.
+removeCols ∷ Int → Int → Handsontable → Effect Unit
+removeCols = alter_ AlterAction.RemoveCol
+
+foreign import _colOffset ∷ EffectFn1 Handsontable Int
+foreign import _rowOffset ∷ EffectFn1 Handsontable Int
+
+-- | Returns the visual index of the first rendered row/column.
+offset ∷ Dimension → Handsontable → Effect Int
+offset dim self = runEffectFn1 impl self
+  where
+    impl = case dim of
+      Row → _rowOffset
+      Col → _colOffset
+
+foreign import _countRows ∷ EffectFn1 Handsontable Int
+foreign import _countCols ∷ EffectFn1 Handsontable Int
+
+foreign import _countEmptyRows ∷ EffectFn2 Boolean Handsontable Int
+foreign import _countEmptyCols ∷ EffectFn2 Boolean Handsontable Int
+
+foreign import _countRenderedRows ∷ EffectFn1 Handsontable Int
+foreign import _countRenderedCols ∷ EffectFn1 Handsontable Int
+
+foreign import _countVisibleRows ∷ EffectFn1 Handsontable Int
+foreign import _countVisibleCols ∷ EffectFn1 Handsontable Int
+
+foreign import _countSourceRows ∷ EffectFn1 Handsontable Int
+foreign import _countSourceCols ∷ EffectFn1 Handsontable Int
+
+-- | Returns the total number of all/visible/empty rows/cols in the table.
+count ∷ Dimension → CountSource → Handsontable → Effect Int
+count dim source self = case dim, source of
+  Row, CountSource.All       → runEffectFn1 _countRows self
+  Row, CountSource.Empty end → runEffectFn2 _countEmptyRows end self
+  Row, CountSource.Rendered  → runEffectFn1 _countRenderedRows self
+  Row, CountSource.Visible   → runEffectFn1 _countVisibleRows self
+  Row, CountSource.Source    → runEffectFn1 _countSourceRows self
+  Col, CountSource.All       → runEffectFn1 _countCols self
+  Col, CountSource.Empty end → runEffectFn2 _countEmptyCols end self
+  Col, CountSource.Rendered  → runEffectFn1 _countRenderedCols self
+  Col, CountSource.Visible   → runEffectFn1 _countVisibleCols self
+  Col, CountSource.Source    → runEffectFn1 _countSourceCols self
 
 defaultOptions ∷ HandsontableOptions
 defaultOptions
