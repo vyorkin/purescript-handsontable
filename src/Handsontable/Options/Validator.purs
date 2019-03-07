@@ -17,11 +17,11 @@ data Validator
 
 instance showValidator ∷ Show Validator where
   show = case _ of
-    Autocomplete  → "autocomplete"
-    Date          → "date"
-    Numeric       → "numeric"
-    Time          → "time"
-    (Custom name) → name
+    Autocomplete → "autocomplete"
+    Date         → "date"
+    Numeric      → "numeric"
+    Time         → "time"
+    Custom name  → name
 
 validator ∷ Option ColumnOption Validator
 validator = opt "validator"

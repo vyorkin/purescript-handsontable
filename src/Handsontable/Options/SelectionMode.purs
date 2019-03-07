@@ -3,7 +3,7 @@ module Handsontable.Options.SelectionMode where
 import Prelude
 
 import Handsontable.Options (TableOptions)
-import Data.Functor.Contravariant (cmap)
+import Data.Functor.Contravariant ((>$<))
 import Data.Options (Option, opt)
 
 data SelectionMode
@@ -12,9 +12,10 @@ data SelectionMode
   | Multiple
 
 instance showSelectionMode ∷ Show SelectionMode where
-  show Single   = "single"
-  show Range    = "range"
-  show Multiple = "multiple"
+  show = case _ of
+    Single   → "single"
+    Range    → "range"
+    Multiple → "multiple"
 
 selectionMode ∷ Option TableOptions SelectionMode
-selectionMode = cmap show (opt "selectionMode")
+selectionMode = show >$< opt "selectionMode"

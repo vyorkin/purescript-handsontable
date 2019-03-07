@@ -6,7 +6,7 @@ module Handsontable.Options.Renderer
 import Prelude
 
 import Handsontable.Options.Cell as Cell
-import Data.Functor.Contravariant (cmap)
+import Data.Functor.Contravariant ((>$<))
 import Data.Options (Option, opt)
 
 data Renderer
@@ -26,7 +26,7 @@ instance showRenderer ∷ Show Renderer where
     Numeric       → "numeric"
     Password      → "password"
     Text          → "text"
-    (Custom name) → name
+    Custom name   → name
 
 renderer ∷ Option Cell.Option Renderer
-renderer = cmap show (opt "renderer")
+renderer = show >$< opt "renderer"

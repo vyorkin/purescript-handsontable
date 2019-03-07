@@ -3,11 +3,10 @@ module Handsontable.Options.VisualSelection where
 import Prelude
 
 import Handsontable.Options (TableOptions)
-import Data.Functor.Contravariant (cmap)
+import Data.Functor.Contravariant ((>$<))
 import Data.Options (Option, opt)
 import Foreign (unsafeToForeign)
 import Foreign.Class (class Encode, encode)
-import Prelude.Unicode ((∘))
 
 data VisualSelection
   = Set Boolean
@@ -16,17 +15,19 @@ data VisualSelection
   | DisableHeader
 
 instance showVisualSelection ∷ Show VisualSelection where
-  show (Set x)        = show x
-  show DisableCurrent = "current"
-  show DisableArea    = "aread"
-  show DisableHeader  = "header"
+  show = case _ of
+    Set x          → show x
+    DisableCurrent → "current"
+    DisableArea    → "aread"
+    DisableHeader  → "header"
 
 instance encodeVisualSelection ∷ Encode VisualSelection where
-  encode (Set x) = unsafeToForeign x
-  encode x       = unsafeToForeign ∘ show $ x
+  encode = case _ of
+    Set x → unsafeToForeign x
+    x     → unsafeToForeign $ show x
 
 -- | Disables visual cells selection.
 -- |
 -- | Default is `VisualSelectionSet false`.
 visualSelection ∷ Option TableOptions VisualSelection
-visualSelection = cmap encode (opt "disableVisualSelection")
+visualSelection = encode >$< opt "disableVisualSelection"

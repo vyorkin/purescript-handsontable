@@ -12,7 +12,7 @@ import Prelude
 import Prelude.Unicode ((∘))
 import Handsontable.Options.Class (class IsCellOption, class IsSharedOption)
 import Handsontable.Options.Common (SharedOption)
-import Data.Functor.Contravariant (cmap)
+import Data.Functor.Contravariant ((>$<))
 import Data.Options (opt)
 import Data.Options as O
 import Foreign (Foreign)
@@ -52,7 +52,7 @@ instance showCell ∷ Show Cell where
 -- | Shortcut to define the combination of the cell renderer,
 -- | editor and validator for the column, cell or whole table.
 cell ∷ SharedOption Cell
-cell = cmap show (opt "cell")
+cell = show >$< opt "cell"
 
 -- | Makes possible to specify cell overrides.
 options ∷ O.Options Option → Options

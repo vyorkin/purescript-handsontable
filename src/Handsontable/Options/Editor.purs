@@ -6,7 +6,7 @@ module Handsontable.Options.Editor
 import Prelude
 
 import Handsontable.Options.Common (SharedOption)
-import Data.Functor.Contravariant (cmap)
+import Data.Functor.Contravariant ((>$<))
 import Data.Options (opt)
 
 data Editor
@@ -34,10 +34,10 @@ instance showEditor ∷ Show Editor where
     Select        → "select"
     Text          → "text"
     Disable       → show false
-    (Custom name) → name
+    Custom name   → name
 
 -- | Defines the editor for the table/column/cell.
 -- |
 -- | Default is `EditorText`.
 editor ∷ SharedOption Editor
-editor = cmap show (opt "editor")
+editor = show >$< opt "editor"

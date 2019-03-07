@@ -1,7 +1,7 @@
 module Handsontable.Options.Headers where
 
 import Handsontable.Options (TableOptions)
-import Data.Functor.Contravariant (cmap)
+import Data.Functor.Contravariant ((>$<))
 import Data.Options (Option, opt)
 import Foreign (unsafeToForeign)
 import Foreign.Class (class Encode, encode)
@@ -13,11 +13,12 @@ data Headers
   | Set (Array String)
 
 instance encodeHeaders ∷ Encode Headers where
-  encode Default  = unsafeToForeign true
-  encode (Set xs) = unsafeToForeign xs
+  encode = case _ of
+    Default → unsafeToForeign true
+    Set xs  → unsafeToForeign xs
 
 rowHeaders ∷ Option TableOptions Headers
-rowHeaders = cmap encode (opt "rowHeaders")
+rowHeaders = encode >$< opt "rowHeaders"
 
 colHeaders ∷ Option TableOptions Headers
-colHeaders = cmap encode (opt "colHeaders")
+colHeaders = encode >$< opt "colHeaders"

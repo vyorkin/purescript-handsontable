@@ -20,4 +20,4 @@ bower i --save purescript-handsontable
 
 # Overview
 
-#
+A minimal Handsontable bindings.

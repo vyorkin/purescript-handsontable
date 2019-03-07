@@ -3,7 +3,7 @@ module Handsontable.Options.FillHandle where
 import Prelude
 
 import Handsontable.Options (TableOptions)
-import Data.Functor.Contravariant (cmap)
+import Data.Functor.Contravariant ((>$<))
 import Data.Options (Option, opt)
 import Foreign (unsafeToForeign)
 import Foreign.Class (class Encode, encode)
@@ -28,4 +28,4 @@ instance encodeFillHandle ∷ Encode FillHandle where
 -- |
 -- | Default is `true`.
 fillHandle ∷ Option TableOptions FillHandle
-fillHandle = cmap encode (opt "fillHandle")
+fillHandle = encode >$< (opt "fillHandle")
